@@ -84,10 +84,10 @@
       // same functionality as "new Audio(filename)", but with some fallbacks for github preview (not needed, delete this!)
       function newAudio( filename ) {
         let audio = new Audio( filename )
+         console.log( filename + "audio===undefined" + audio === undefined )
         // unneeded feature: if undefined, maybe we're running from a preview in github, if so, fix it up...
-        if (audio === undefined) audio = new Audio( "http://htmlpreview.github.io/?https://raw.githubusercontent.com/subatomicglue/drummachine/master/" + filename )
-        //if (audio === undefined) audio = new Audio( "https://rawgit.com/subatomicglue/drummachine/master/" + filename )
-        //if (audio === undefined) audio = new Audio( "https://cdn.rawgit.com/subatomicglue/drummachine/master/" + filename )
+        if (audio === undefined) audio = new Audio( "https://github.com/subatomicglue/drummachine/raw/master/" + filename )
+         console.log( "https://github.com/subatomicglue/drummachine/raw/master/" + filename + "audio===undefined" + audio === undefined )
         return audio
       }
 
