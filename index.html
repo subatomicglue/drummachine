@@ -1,140 +1,174 @@
 <html>
-   <head>
-   </head>
-   <body id='body'>
-      <style>
-         .on, .set, .off {
-            margin: 1px;
-         }
-         .on, .set, .off {
-            width: 12px;
-            height: 12px;
-            display:inline-block
-         }
-         .on {
-            background-color: coral;
-         }
-         .set {
-            background-color: red;
-         }
-         .off {
-            background-color: black;
-         }
-         .lane {
-            background-color: white;
-         }
-      </style>
-      <script>
-         // configuration parameters:
-         let lanes = 3       // How many lanes
-         let slots = 16      // How many cells in each lane
-         let speed = 200     // How fast to increment the song position
-                             //   {counter} by 1 (in milliseconds)
-         let lane_sounds = [ // What sound to use for each lane
-            { filename: "env9091.wav", pool: 4 },
-            { filename: "MaxV - Roland808 - SD1010 11.WAV", pool: 4 },
-            { filename: "MaxV - Roland808 - CH 39.WAV", pool: 4 },
-         ]
-         let counter = 0     // The current song position
-                             // (increments by 1 every {speed} milliseconds)
-         let seq = []        // Lane & slot data (our sequencer)
-                             // array of arrays  (i.e. array of seq_lanes,
-                             //                   which are arrays of slotdata)
+  <head>
+  </head>
+  <body>
+    <!-- we will generate the sequencer UI in here -->
+    <div id='sequencerUI'></div>
+    <div class='lane'>
+      <div id='play_button' class='play' onclick='playing=true; counter=0'></div>
+      <div id='stop_button' class='stop' onclick='playing=false'></div>
+      <div id='tempo_slower_button' class='slower' onclick='speed = speed < 1000 ? speed*2 : 1000; restartTimer()'></div>
+      <div id='tempo_faster_button' class='faster' onclick='speed = speed > 0 ? speed/2 : 0; restartTimer()'></div>
+    </div>
+    <style>
+      .on, .set, .off {
+        margin: 1px;
+      }
+      .on, .set, .off, .play, .stop, .faster, .slower {
+        width: 12px;
+        height: 12px;
+        display:inline-block
+      }
+      .on {
+        background-color: coral;
+      }
+      .set {
+        background-color: red;
+      }
+      .off {
+        background-color: black;
+      }
+      .lane {
+        background-color: white;
+      }
+      .play {
+        background-color: greenyellow;
+      }
+      .stop {
+        background-color: red;
+      }
+      .faster {
+        background-color: blue;
+      }
+      .slower {
+        background-color: blueviolet;
+      }
+    </style>
 
-         // called when clicking on any slot
-         function onSlotClick( slotdata ) {
-            // just toggle the state from 'off' (false) to 'set' (true)
-            slotdata.state = !slotdata.state
-         }
+    <script>
+      // configuration parameters:
+      let lanes = 3       // How many lanes
+      let slots = 16      // How many cells in each lane
+      let speed = 200     // How fast to increment the song position
+                          //  {counter} by 1 (in milliseconds)
+      let lane_sounds = [ // What sound to use for each lane
+        { filename: "env9091.wav", pool: 4 },
+        { filename: "MaxV - Roland808 - SD1010 11.WAV", pool: 4 },
+        { filename: "MaxV - Roland808 - CH 39.WAV", pool: 4 },
+      ]
+      let counter = 0     // The current song position
+                          // (increments by 1 every {speed} milliseconds)
+      let seq = []        // Lane & slot data (our sequencer)
+                          // array of arrays  (i.e. array of seq_lanes,
+                          //             which are arrays of slotdata)
+      let playing = false;// we'll advance the counter when this is true
 
-         // initialize the sequencer track
-         // everything is driven off the configuration parameters
-         function init() {
-            // init the sound manager (aka. sound pools)
-            // so that sounds can overlap when played too close together
-            // each lane allocates {pool} number of duplicates of the sound
-            // when trigger()ing the sound, play the next one in roundrobin order
-            for (let s of lane_sounds) {
-               s.sound_pool = []
-               for (let i = 0; i < s.pool; ++i) {
-                  s.sound_pool.push( new Audio( s.filename ) )
-               }
-               s.pool_counter = 0
-               // this is how we trigger a sound from the pool
-               s.trigger = () => {
-                  s.sound_pool[s.pool_counter].play();
-                  s.pool_counter = (s.pool_counter + 1) % s.pool
-               }
+      // called when clicking on any slot
+      function onSlotClick( slotdata ) {
+        // toggle the state from 'off' (false) to 'set' (true)
+        slotdata.state = !slotdata.state
+      }
+
+      // initialize the sequencer track
+      // everything is driven off the configuration parameters
+      function init() {
+        // init the sound manager (aka. sound pools)
+        // so that sounds can overlap when played too close together
+        // each lane allocates {pool} number of duplicates of the sound
+        // when trigger()ing the sound, play the next one in roundrobin order
+        for (let s of lane_sounds) {
+          // for this lane: create {pool} number of duplicates of the same sound 
+          s.sound_pool = []
+          for (let i = 0; i < s.pool; ++i) {
+            s.sound_pool.push( new Audio( s.filename ) )
+          }
+          s.pool_counter = 0
+          // this is how we'll trigger a sound from the pool
+          s.trigger = () => {
+            s.sound_pool[s.pool_counter].play()
+            s.pool_counter = (s.pool_counter + 1) % s.sound_pool.length
+          }
+        }
+
+        // create the sequencer UI
+        // add the lanes/slots into the DOM, like this:
+        // <div id="lane0" class="lane">
+        //   <div id="a00"></div>
+        //   ...
+        //   <div id="a08"></div>
+        // </div>
+        for (let lane_num = 0; lane_num < lanes; ++lane_num) {
+          let lane = document.createElement("div")
+          lane.id = 'lane' + lane_num;
+          lane.className = 'lane';
+          for (let slot_num = 0; slot_num < slots; ++slot_num) {
+            let slot = document.createElement("div")
+            slot.id = 'a' + lane_num + slot_num
+            lane.appendChild( slot )
+          }
+          // add the lane div to the spot we declared in html
+          sequencerUI.appendChild( lane )
+        }
+
+        // set up the lanes, initialize the data for each slot
+        for (let lane = 0; lane < lanes; ++lane) {
+          // each lane has slots
+          let seq_lane = []
+          for (let slot = 0; slot < slots; ++slot) {
+            // each slot has slotdata
+            let slotdata = {
+              element: document.getElementById( 'a' + lane + slot ),
+              state: false,
+              sound_pool: lane_sounds[lane]
             }
+            // setup the cell's onclick to call onSlotClick
+            slotdata.element.onclick = () => onSlotClick( slotdata )
+            seq_lane.push( slotdata )
+          }
+          seq.push( seq_lane )
+        }
+      }
 
-            // create the lanes/slots into the DOM, like this:
-            // <div id="lane0" class="lane">
-            //   <div id="a00"></div>
-            //   ...
-            //   <div id="a08"></div>
-            // </div>
-            for (let lane_num = 0; lane_num < lanes; ++lane_num) {
-               let lane = document.createElement("div");
-               lane.id = 'lane' + lane_num;
-               lane.className = 'lane';
-               for (let slot_num = 0; slot_num < slots; ++slot_num) {
-                  let slot = document.createElement("div");
-                  slot.id = 'a' + lane_num + slot_num;
-                  lane.appendChild( slot );
-               }
-               body.appendChild( lane );
-            }
+      // called when it's time to trigger a cell
+      function trigger( slotdata ) {
+        slotdata.sound_pool.trigger()
+      }
 
-            // set up the lanes, initialize the data for each slot
-            for (let lane = 0; lane < lanes; ++lane) {
-               // each lane has slots
-               let seq_lane = []
-               for (let slot = 0; slot < slots; ++slot) {
-                  // each slot has slotdata
-                  let slotdata = {
-                     element: document.getElementById( 'a' + lane + slot ),
-                     state: false,
-                     sound_pool: lane_sounds[lane]
-                  }
-                  // setup the cell's onclick to call onSlotClick
-                  slotdata.element.onclick = () => onSlotClick( slotdata )
-                  seq_lane.push( slotdata )
-               }
-               seq.push( seq_lane )
-            }
-         }
+      // step the sequencer one step
+      function step() {
+        // reset all cells to show their 'set' state (or 'off' if not set)
+        for (let seq_lane of seq) {
+          for (let slot of seq_lane) {
+            slot.element.className = slot.state ? 'set' : 'off'
+          }
+        }
 
-         // called when it's time to trigger a cell
-         function trigger( slotdata ) {
-            slotdata.sound_pool.trigger()
-         }
+        // show where the song position is by turning 'on' the cell
+        for (let lane in seq) {
+          seq[lane][counter].element.className = 'on'
 
-         // step the sequencer one step
-         function step() {
-            // reset all cells to show their 'set' state (or 'off' if not set)
-            for (let seq_lane of seq) {
-               for (let slot of seq_lane) {
-                  slot.element.className = slot.state ? 'set' : 'off'
-               }
-            }
+          // if the cell is 'set', then trigger it!
+          if (playing && seq[lane][counter].state) {
+            trigger( seq[lane][counter] );
+          }
+        }
 
-            // show where the song position is by turning 'on' the cell
-            for (let lane in seq) {
-               seq[lane][counter].element.className = 'on'
+        // advance the song pointer (use mod so it wraps around)
+        counter = (counter + (playing?1:0)) % slots
+        console.log( speed );
+      }
 
-               // if the cell is 'set', then trigger it!
-               if (seq[lane][counter].state) {
-                  trigger( seq[lane][counter] );
-               }
-            }
+      // the timer is our clock that 'steps' the sequencer forward
+      let timer_id;
+      function restartTimer() {
+        if (timer_id)
+          clearInterval( timer_id ) 
+        timer_id = setInterval( () => step(), speed )
+      }
 
-            // advance the song pointer (use mod so it wraps around)
-            counter = (counter + 1) % slots
-         }
-
-         // go!
-         init()
-         setInterval( () => step(), speed )
-      </script>
-   </body>
+      // go!
+      init()
+      restartTimer()
+    </script>
+  </body>
 </html>
