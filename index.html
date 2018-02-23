@@ -3,21 +3,33 @@
   </head>
   <body>
     <!-- we will generate the sequencer UI in here -->
-    <div id='sequencerUI'></div>
-    <div class='lane'>
-      <div id='play_button' class='play' onclick='playing=true; counter=0'></div>
+    <div id='sequencerUI' class='column'></div>
+    <div class='column'>
+      <div class='row'>
+        <div id='tempo_faster_button' class='faster' onclick='speed = speed > 0 ? speed/2 : 0; restartTimer()'></div>
+      </div>
+      <div class='row'>
+          <div id='tempo_slower_button' class='slower' onclick='speed = speed < 1000 ? speed*2 : 1000; restartTimer()'></div>
+        </div>
+      </div>
+    <div class='row'>
       <div id='stop_button' class='stop' onclick='playing=false'></div>
-      <div id='tempo_slower_button' class='slower' onclick='speed = speed < 1000 ? speed*2 : 1000; restartTimer()'></div>
-      <div id='tempo_faster_button' class='faster' onclick='speed = speed > 0 ? speed/2 : 0; restartTimer()'></div>
+      <div id='play_button' class='play' onclick='playing=true; counter=0'></div>
+      <div id='spacer' class='spacer'></div>
     </div>
     <style>
-      .on, .set, .off {
+      .on, .set, .off, .play, .stop, .faster, .slower, .spacer {
         margin: 1px;
-      }
-      .on, .set, .off, .play, .stop, .faster, .slower {
         width: 12px;
         height: 12px;
-        display:inline-block
+        display:inline-block;
+      }
+      .column {
+        display:inline-block;
+      }
+      .row, .lane {
+        height: 14px;
+        font-size: 0; // for the spaces between the slots
       }
       .on {
         background-color: coral;
@@ -104,6 +116,7 @@
           for (let slot_num = 0; slot_num < slots; ++slot_num) {
             let slot = document.createElement("div")
             slot.id = 'a' + lane_num + slot_num
+            slot.className = 'off'
             lane.appendChild( slot )
           }
           // add the lane div to the spot we declared in html
@@ -155,7 +168,6 @@
 
         // advance the song pointer (use mod so it wraps around)
         counter = (counter + (playing?1:0)) % slots
-        console.log( speed );
       }
 
       // the timer is our clock that 'steps' the sequencer forward
