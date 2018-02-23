@@ -2,16 +2,16 @@
 
 Hello, you've found a javascript drum machine!
 
-## Preview:
+## Try it out:
 [ ![javascript drummachine](drummachine.png) ](http://htmlpreview.github.io/?https://raw.githubusercontent.com/subatomicglue/drummachine/master/index.html)
 
-## Install:
+## Get the code:
 ```
 git clone https://github.com/subatomicglue/drummachine.git drummachine
 cd drummachine
 ```
 
-## Run:
+## Run it locally:
 ```
 open index.html (in your favorite web browser)
 ```
