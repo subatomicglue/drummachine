@@ -1,72 +1,45 @@
 <html>
    <head>
    </head>
-   <body>
-      <!-- create the tracks.   we could do better and create these with javascript.  but this was easy -->
-      <div id="lane0" class="lane"></div>
-         <div id="a00"></div>
-         <div id="a01"></div>
-         <div id="a02"></div>
-         <div id="a03"></div>
-         <div id="a04"></div>
-         <div id="a05"></div>
-         <div id="a06"></div>
-         <div id="a07"></div>
-      </div>
-      <div id="lane1" class="lane"></div>
-         <div id="a10"></div>
-         <div id="a11"></div>
-         <div id="a12"></div>
-         <div id="a13"></div>
-         <div id="a14"></div>
-         <div id="a15"></div>
-         <div id="a16"></div>
-         <div id="a17"></div>
-      </div>
-      <div id="lane2" class="lane"></div>
-         <div id="a20"></div>
-         <div id="a21"></div>
-         <div id="a22"></div>
-         <div id="a23"></div>
-         <div id="a24"></div>
-         <div id="a25"></div>
-         <div id="a26"></div>
-         <div id="a27"></div>
-      </div>
+   <body id='body'>
       <style>
+         .on, .set, .off {
+            margin: 1px;
+         }
+         .on, .set, .off {
+            width: 12px;
+            height: 12px;
+            display:inline-block
+         }
          .on {
             background-color: coral;
-            width: 10px;
-            height: 10px;
-            display:inline-block
          }
          .set {
             background-color: red;
-            width: 10px;
-            height: 10px;
-            display:inline-block
          }
          .off {
             background-color: black;
-            width: 10px;
-            height: 10px;
-            display:inline-block
          }
          .lane {
-            background-color: blue;
+            background-color: white;
          }
       </style>
       <script>
-         let seq = []      // array of arrays  (i.e. array of seq_lanes, which are arrays of slotdata)
-         let counter = 0   // the current song position (this increments by 1, every {speed} milliseconds)
-         let lanes = 3     // how many lanes
-         let slots = 8     // how many cells in each lane
-         let lane_sounds = [
-            new Audio("env9091.wav"),
-            new Audio("MaxV - Roland808 - SD1010 11.WAV"),
-            new Audio("MaxV - Roland808 - CH 39.WAV"),
+         // configuration parameters:
+         let lanes = 3       // How many lanes
+         let slots = 16      // How many cells in each lane
+         let speed = 200     // How fast to increment the song position
+                             //   {counter} by 1 (in milliseconds)
+         let lane_sounds = [ // What sound to use for each lane
+            { filename: "env9091.wav", pool: 4 },
+            { filename: "MaxV - Roland808 - SD1010 11.WAV", pool: 4 },
+            { filename: "MaxV - Roland808 - CH 39.WAV", pool: 4 },
          ]
-         let speed = 200   // how fast to increment the song position {counter} by 1 (in milliseconds)
+         let counter = 0     // The current song position
+                             // (increments by 1 every {speed} milliseconds)
+         let seq = []        // Lane & slot data (our sequencer)
+                             // array of arrays  (i.e. array of seq_lanes,
+                             //                   which are arrays of slotdata)
 
          // called when clicking on any slot
          function onSlotClick( slotdata ) {
@@ -75,8 +48,44 @@
          }
 
          // initialize the sequencer track
+         // everything is driven off the configuration parameters
          function init() {
-            // set up the lanes, and initialize the data for each slot
+            // init the sound manager (aka. sound pools)
+            // so that sounds can overlap when played too close together
+            // each lane allocates {pool} number of duplicates of the sound
+            // when trigger()ing the sound, play the next one in roundrobin order
+            for (let s of lane_sounds) {
+               s.sound_pool = []
+               for (let i = 0; i < s.pool; ++i) {
+                  s.sound_pool.push( new Audio( s.filename ) )
+               }
+               s.pool_counter = 0
+               // this is how we trigger a sound from the pool
+               s.trigger = () => {
+                  s.sound_pool[s.pool_counter].play();
+                  s.pool_counter = (s.pool_counter + 1) % s.pool
+               }
+            }
+
+            // create the lanes/slots into the DOM, like this:
+            // <div id="lane0" class="lane">
+            //   <div id="a00"></div>
+            //   ...
+            //   <div id="a08"></div>
+            // </div>
+            for (let lane_num = 0; lane_num < lanes; ++lane_num) {
+               let lane = document.createElement("div");
+               lane.id = 'lane' + lane_num;
+               lane.className = 'lane';
+               for (let slot_num = 0; slot_num < slots; ++slot_num) {
+                  let slot = document.createElement("div");
+                  slot.id = 'a' + lane_num + slot_num;
+                  lane.appendChild( slot );
+               }
+               body.appendChild( lane );
+            }
+
+            // set up the lanes, initialize the data for each slot
             for (let lane = 0; lane < lanes; ++lane) {
                // each lane has slots
                let seq_lane = []
@@ -85,7 +94,7 @@
                   let slotdata = {
                      element: document.getElementById( 'a' + lane + slot ),
                      state: false,
-                     sound: lane_sounds[lane]
+                     sound_pool: lane_sounds[lane]
                   }
                   // setup the cell's onclick to call onSlotClick
                   slotdata.element.onclick = () => onSlotClick( slotdata )
@@ -97,9 +106,7 @@
 
          // called when it's time to trigger a cell
          function trigger( slotdata ) {
-            slotdata.sound.pause();
-            slotdata.sound.currentTime = 0;
-            slotdata.sound.play()
+            slotdata.sound_pool.trigger()
          }
 
          // step the sequencer one step
