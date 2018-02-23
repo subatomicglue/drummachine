@@ -81,19 +81,18 @@
         slotdata.state = !slotdata.state
       }
 
-      // same functionality as "new Audio(filename)", but with some fallbacks for github preview (not needed, delete this!)
+      // same functionality as "new Audio(filename)", but with fallback for github preview (not needed, delete this!)
       function newAudio( filename ) {
         let audio = new Audio( filename )
 
-        // unneeded feature: if undefined, maybe we're running from a preview in github, if so, fix it up...
-        console.log( filename + "audio===undefined" + audio === undefined )
+        // fallback to github located file preview...
         audio.onerror = function() {
           audio.onerror = undefined
           console.log("File " + filename + " does not exist - running in github preview mode?");
           audio.src = "https://github.com/subatomicglue/drummachine/raw/master/" + filename;
           audio.load();
         };
-        //https://github.com/subatomicglue/drummachine/blob/master/MaxV%20-%20Roland808%20-%20SD1010%2011.WAV?raw=true
+
         return audio
       }
 
