@@ -81,6 +81,15 @@
         slotdata.state = !slotdata.state
       }
 
+      // same functionality as "new Audio(filename)", but with some fallbacks for github preview (not needed, delete this!)
+      function newAudio( filename ) {
+        let audio = new Audio( filename )
+        // unneeded feature: if undefined, maybe we're running from a preview in github, if so, fix it up...
+        if (audio === undefined) audio = new Audio( "https://rawgit.com/subatomicglue/drummachine/master/" + filename )
+        //if (audio === undefined) audio = new Audio( "https://cdn.rawgit.com/subatomicglue/drummachine/master/" + filename )
+        return audio
+      }
+
       // initialize the sequencer track
       // everything is driven off the configuration parameters
       function init() {
@@ -92,7 +101,7 @@
           // for this lane: create {pool} number of duplicates of the same sound 
           s.sound_pool = []
           for (let i = 0; i < s.pool; ++i) {
-            s.sound_pool.push( new Audio( s.filename ) )
+            s.sound_pool.push( newAudio( s.filename ) )
           }
           s.pool_counter = 0
           // this is how we'll trigger a sound from the pool
