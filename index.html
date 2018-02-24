@@ -6,10 +6,10 @@
     <div id='sequencerUI' class='column'></div>
     <div class='column'>
       <div class='row'>
-        <div id='tempo_faster_button' class='faster' onclick='speed = speed > 0 ? speed/2 : 0; restartTimer()'></div>
+        <div id='tempo_faster_button' class='faster' onclick='speed = speed > 0 ? speed-100 : 0; restartTimer()'></div>
       </div>
       <div class='row'>
-          <div id='tempo_slower_button' class='slower' onclick='speed = speed < 1000 ? speed*2 : 1000; restartTimer()'></div>
+          <div id='tempo_slower_button' class='slower' onclick='speed = speed < 1000 ? speed+100 : 1000; restartTimer()'></div>
         </div>
       </div>
     <div class='row'>
@@ -19,7 +19,10 @@
     </div>
     <style>
       .on, .set, .off, .play, .stop, .faster, .slower, .spacer {
-        margin: 1px;
+        //margin: 1px;
+        border-style: solid;
+        border-width: 1px;
+        border-color: white;
         width: 12px;
         height: 12px;
         display:inline-block;
@@ -57,7 +60,11 @@
       }
     </style>
 
+    <!-- WebAudio has much better latency than Audio.  If present, then WebAudio will be used instead of Audio -->
+    <script src="webaudio.js"></script>
+
     <script>
+
       // configuration parameters:
       let lanes = 3       // How many lanes
       let slots = 16      // How many cells in each lane
@@ -65,8 +72,8 @@
                           //  {counter} by 1 (in milliseconds)
       let lane_sounds = [ // What sound to use for each lane
         { filename: "env9091.wav", pool: 4 },
-        { filename: "MaxV - Roland808 - SD1010 11.WAV", pool: 4 },
-        { filename: "MaxV - Roland808 - CH 39.WAV", pool: 4 },
+        { filename: "roland808sd101011.wav", pool: 4 },
+        { filename: "roland808ch39.wav", pool: 4 },
       ]
       let counter = 0     // The current song position
                           // (increments by 1 every {speed} milliseconds)
@@ -87,7 +94,7 @@
 
         // fallback to github located file preview...
         audio.onerror = function() {
-          audio.onerror = undefined
+          audio.onerror = () => console.log( "already had an error " + audio.src );
           console.log("File " + filename + " does not exist - running in github preview mode?");
           audio.src = "https://github.com/subatomicglue/drummachine/raw/master/" + filename;
           audio.load();
