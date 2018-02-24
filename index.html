@@ -106,7 +106,7 @@
           audio.onerror = () => console.log( "already had an error " + audio.src )
           console.log("File " + audio.src + " does not exist - running in github preview mode?")
           audio.src = "https://crossorigin.me/https://media.githubusercontent.com/media/subatomicglue/drummachine/master/" + filename
-          console.log( " - Trying: " + audio.src )
+          //console.log( "Falling Back to: " + audio.src )
           audio.load();
         };
 
