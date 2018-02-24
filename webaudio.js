@@ -3,6 +3,7 @@
 let WebAudioAPISoundManager = function (context) {
   this.context = context;
   this.bufferList = {};
+  console.log( "WebAudio Initialized!")
 };
 
 // WebAudioAPISoundManager Prototype
