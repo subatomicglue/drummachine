@@ -103,9 +103,10 @@
 
         // fallback to github located file preview...
         audio.onerror = function() {
-          audio.onerror = () => console.log( "already had an error " + audio.src );
-          console.log("File " + filename + " does not exist - running in github preview mode?");
-          audio.src = "https://crossorigin.me/https://github.com/subatomicglue/drummachine/raw/master/" + filename;
+          audio.onerror = () => console.log( "already had an error " + audio.src )
+          console.log("File " + filename + " does not exist - running in github preview mode?")
+          audio.src = "https://crossorigin.me/https://github.com/subatomicglue/drummachine/raw/master/" + filename
+          console.log( "Trying: " + audio.src )
           audio.load();
         };
 
