@@ -15,7 +15,7 @@ WebAudioAPISoundManager.prototype = {
     request.onload = () => {
       this.context.decodeAudioData( request.response ).then(
         (buffer) => {
-          if (!buffer) { alert('error decoding file data: ' + url); return; }
+          if (!buffer) { console.log('error decoding file data: ' + url); return; }
           this.bufferList[url] = buffer;
         },
         (err) => sound.onerror && sound.onerror()
@@ -23,7 +23,7 @@ WebAudioAPISoundManager.prototype = {
     };
     request.onerror = function () {
       sound.onerror && sound.onerror();
-      alert('BufferLoader: XHR error');
+      console.log('BufferLoader: XHR error');
     };
     request.send();
   },
