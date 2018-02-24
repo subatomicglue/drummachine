@@ -157,6 +157,7 @@
         }
 
         // set up the lanes, initialize the data for each slot
+        seq = [];
         for (let lane = 0; lane < lanes; ++lane) {
           // each lane has slots
           let seq_lane = []
@@ -177,7 +178,7 @@
 
       // called when it's time to trigger a cell
       function trigger( slotdata ) {
-        slotdata.sound_pool.trigger()
+        slotdata.sound_pool && slotdata.sound_pool.trigger()
       }
 
       // step the sequencer one step

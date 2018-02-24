@@ -50,11 +50,9 @@ WebAudioAPISound.prototype = {
   get src() { return this.url },
   load() { this.manager.addSound( this.url, this ) },
   play() {
-     console.log( "playing " + this.url );
     var buffer = this.manager.bufferList[this.url];
-    //Only play if it's loaded yet
     if (typeof buffer !== "undefined") {
-      this.source = this.makeSource(buffer);
+      this.source = this.makeSource( buffer );
       this.source.loop = this.settings.loop;
       this.source.start(0);
     }
