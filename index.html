@@ -2,6 +2,14 @@
   <head>
   </head>
   <body>
+    <div class='column'>
+      <div class='row'>
+        <div id='lanecount_inc_button' class='faster' onclick='lanes++; init()'></div>
+      </div>
+      <div class='row'>
+        <div id='lanecount_dec_button' class='slower' onclick='lanes--; init()'></div>
+      </div>
+    </div>
     <!-- we will generate the sequencer UI in here -->
     <div id='sequencerUI' class='column'></div>
     <div class='column'>
@@ -9,13 +17,13 @@
         <div id='tempo_faster_button' class='faster' onclick='speed = speed > 0 ? speed-100 : 0; restartTimer()'></div>
       </div>
       <div class='row'>
-          <div id='tempo_slower_button' class='slower' onclick='speed = speed < 1000 ? speed+100 : 1000; restartTimer()'></div>
-        </div>
+        <div id='tempo_slower_button' class='slower' onclick='speed = speed < 1000 ? speed+100 : 1000; restartTimer()'></div>
       </div>
+    </div>
     <div class='row'>
+      <div id='spacer' class='spacer'></div>
       <div id='stop_button' class='stop' onclick='playing=false'></div>
       <div id='play_button' class='play' onclick='playing=true; counter=0'></div>
-      <div id='spacer' class='spacer'></div>
     </div>
     <style>
       .on, .set, .off, .play, .stop, .faster, .slower, .spacer {
@@ -61,19 +69,20 @@
     </style>
 
     <!-- WebAudio has much better latency than Audio.  If present, then WebAudio will be used instead of Audio -->
-    <!-- <script src="webaudio.js"></script> -->
+    <script src="webaudio.js"></script>
 
     <script>
 
       // configuration parameters:
-      let lanes = 3       // How many lanes
+      let lanes = 4       // How many lanes
       let slots = 16      // How many cells in each lane
-      let speed = 200     // How fast to increment the song position
+      let speed = 200      // How fast to increment the song position
                           //  {counter} by 1 (in milliseconds)
       let lane_sounds = [ // What sound to use for each lane
         { filename: "env9091.wav", pool: 4 },
         { filename: "roland808sd101011.wav", pool: 4 },
         { filename: "roland808ch39.wav", pool: 4 },
+        { filename: "linn14.wav", pool: 4 },
       ]
       let counter = 0     // The current song position
                           // (increments by 1 every {speed} milliseconds)
@@ -97,7 +106,7 @@
           audio.onerror = () => console.log( "already had an error " + audio.src );
           console.log("File " + filename + " does not exist - running in github preview mode?");
           audio.src = "https://github.com/subatomicglue/drummachine/raw/master/" + filename;
-          audio.load();
+          audio.load();//https://crossorigin.me/
         };
 
         return audio
@@ -131,6 +140,7 @@
         //   ...
         //   <div id="a08"></div>
         // </div>
+        sequencerUI.innerHTML = '';
         for (let lane_num = 0; lane_num < lanes; ++lane_num) {
           let lane = document.createElement("div")
           lane.id = 'lane' + lane_num;
