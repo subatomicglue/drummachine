@@ -79,7 +79,8 @@ try {
   window.AudioContext = window.AudioContext || window.webkitAudioContext;
   window.audioContext = new window.AudioContext();
   Audio = WebAudioAPISound;
+  console.log( "WebAudio Initialized - Replaced your Audio with WebAudioAPISound!")
 } catch (e) {
-  console.log("No Web Audio API support");
+  console.log( "No Web Audio API support" );
 }
 
