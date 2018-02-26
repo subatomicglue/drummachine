@@ -2,32 +2,49 @@
   <head>
   </head>
   <body>
-    <div class='column'>
+    <div class='column top'>
       <div class='row'>
-        <div id='lanecount_inc_button' class='faster' onclick='lanes++; init()'></div>
+        <div class='spacer'></div>
+        <div class='spacer'></div>
+        <div id='lanecount_inc_button' class='plus' onclick='lanes++; init()'></div>
       </div>
       <div class='row'>
-        <div id='lanecount_dec_button' class='slower' onclick='lanes--; init()'></div>
+        <div class='spacer'></div>
+        <div class='spacer'></div>
+        <div id='lanecount_dec_button' class='minus' onclick='lanes--; init()'></div>
       </div>
+      <div id='slotcount_dec_button' class='minus' onclick='slots--; init()'></div>
+      <div id='slotcount_inc_button' class='plus' onclick='slots++; init()'></div>
     </div>
-    <!-- we will generate the sequencer UI in here -->
-    <div id='sequencerUI' class='column'></div>
-    <div class='column'>
+    <div class='column top'>
+      <div class='spacer'></div>
+    </div>
+    <div id='sequencerUI' class='column top'><!-- we will generate the sequencer UI in here --></div>
+    <div class='column top'>
+      <div class='spacer'></div>
+    </div>
+    <div class='column top'>
       <div class='row'>
-        <div id='tempo_faster_button' class='faster' onclick='speed = speed > 0 ? speed-100 : 0; restartTimer()'></div>
+        <div id='tempo_faster_button' class='plus' onclick='speed = speed > 0 ? speed-100 : 0; restartTimer()'></div>
       </div>
       <div class='row'>
-        <div id='tempo_slower_button' class='slower' onclick='speed = speed < 1000 ? speed+100 : 1000; restartTimer()'></div>
+        <div id='tempo_slower_button' class='minus' onclick='speed = speed < 1000 ? speed+100 : 1000; restartTimer()'></div>
       </div>
     </div>
     <div class='row'>
-      <div id='spacer' class='spacer'></div>
+      <div class='spacer'></div>
+      <div class='spacer'></div>
+      <div class='spacer'></div>
+      <div class='spacer'></div>
+      <div class='spacer'></div>
+      <div class='spacer'></div>
       <div id='stop_button' class='stop' onclick='playing=false'></div>
       <div id='play_button' class='play' onclick='playing=true; counter=0'></div>
     </div>
+    <input style="display:none;" type="file" id="imageupload" accept="audio/*" onchange='setAudio'>
     <style>
-      .on, .set, .off, .play, .stop, .faster, .slower, .spacer {
-        //margin: 1px;
+      body { font-size: 0; }
+      .on, .set, .off, .play, .stop, .plus, .minus, .spacer, .grey {
         border-style: solid;
         border-width: 1px;
         border-color: white;
@@ -38,34 +55,21 @@
       .column {
         display:inline-block;
       }
+      .top {
+        vertical-align: top;
+      }
       .row, .lane {
         height: 14px;
-        font-size: 0; // for the spaces between the slots
       }
-      .on {
-        background-color: coral;
-      }
-      .set {
-        background-color: red;
-      }
-      .off {
-        background-color: black;
-      }
-      .lane {
-        background-color: white;
-      }
-      .play {
-        background-color: greenyellow;
-      }
-      .stop {
-        background-color: red;
-      }
-      .faster {
-        background-color: blue;
-      }
-      .slower {
-        background-color: blueviolet;
-      }
+      .on     { background-color: coral; }
+      .set    { background-color: red; }
+      .off    { background-color: black; }
+      .lane   { background-color: white; }
+      .play   { background-color: greenyellow; }
+      .stop   { background-color: red; }
+      .plus   { background-color: blue; }
+      .minus  { background-color: lightblue; }
+      .grey   { background-color: grey; }
     </style>
 
     <!-- WebAudio has much better latency than Audio.  If present, then WebAudio will be used instead of Audio -->
@@ -76,7 +80,7 @@
       // configuration parameters:
       let lanes = 4       // How many lanes
       let slots = 16      // How many cells in each lane
-      let speed = 200      // How fast to increment the song position
+      let speed = 200     // How fast to increment the song position
                           //  {counter} by 1 (in milliseconds)
       let lane_sounds = [ // What sound to use for each lane
         { filename: "env9091.wav", pool: 4 },
@@ -87,8 +91,8 @@
       let counter = 0     // The current song position
                           // (increments by 1 every {speed} milliseconds)
       let seq = []        // Lane & slot data (our sequencer)
-                          // array of arrays  (i.e. array of seq_lanes,
-                          //             which are arrays of slotdata)
+                          // array of arrays  (i.e. array of seq_lanes objects,
+                          //             which have arrays of slotdata)
       let playing = false;// we'll advance the counter when this is true
 
       // called when clicking on any slot
@@ -113,27 +117,17 @@
         return audio
       }
 
+      // set the audio for a lane from a file upload
+      function setAudio( file, whichlane ) {
+        for (let sound of seq[whichlane].soundmanager.sound_pool) {
+          sound.src = URL.createObjectURL( file )
+          sound.load()
+        }
+      }
+
       // initialize the sequencer track
       // everything is driven off the configuration parameters
       function init() {
-        // init the sound manager (aka. sound pools)
-        // so that sounds can overlap when played too close together
-        // each lane allocates {pool} number of duplicates of the sound
-        // when trigger()ing the sound, play the next one in roundrobin order
-        for (let s of lane_sounds) {
-          // for this lane: create {pool} number of duplicates of the same sound 
-          s.sound_pool = []
-          for (let i = 0; i < s.pool; ++i) {
-            s.sound_pool.push( newAudio( s.filename ) )
-          }
-          s.pool_counter = 0
-          // this is how we'll trigger a sound from the pool
-          s.trigger = () => {
-            s.sound_pool[s.pool_counter].play()
-            s.pool_counter = (s.pool_counter + 1) % s.sound_pool.length
-          }
-        }
-
         // create the sequencer UI
         // add the lanes/slots into the DOM, like this:
         // <div id="lane0" class="lane">
@@ -146,6 +140,23 @@
           let lane = document.createElement("div")
           lane.id = 'lane' + lane_num;
           lane.className = 'lane';
+          // upload audiofile button before each lane
+          let file_inp = document.createElement("input")
+          file_inp.style = "display:none;"
+          file_inp.type="file"
+          file_inp.id="imageupload"+lane_num
+          file_inp.accept="audio/*"
+          file_inp.onchange = (e) => setAudio(file_inp.files[0],lane_num)
+          lane.appendChild( file_inp )
+          let file_req = document.createElement("div")
+          file_req.id='audiofileupload_button'
+          file_req.className="grey"
+          file_req.onclick = () => { document.getElementById('imageupload'+lane_num).click(); return true; }
+          lane.appendChild( file_req )
+          let spacer = document.createElement("div")
+          spacer.className="spacer"
+          lane.appendChild( spacer )
+          // create the slots
           for (let slot_num = 0; slot_num < slots; ++slot_num) {
             let slot = document.createElement("div")
             slot.id = 'a' + lane_num + slot_num
@@ -156,47 +167,67 @@
           sequencerUI.appendChild( lane )
         }
 
-        // set up the lanes, initialize the data for each slot
+        // set up the lanes
         seq = [];
         for (let lane = 0; lane < lanes; ++lane) {
-          // each lane has slots
-          let seq_lane = []
+          // setup a tiny sound manager for each lane
+          // each lane has a pool of sounds: {pool} number of duplicates of the same sound 
+          // so that sounds can overlap when played too close together in time
+          let sm = {sound_pool: [], pool_counter: 0}
+          let lane_config = Object.assign({filename:'default.wav', pool:4}, lane_sounds[lane] ? lane_sounds[lane] : {})
+          for (let i = 0; i < lane_config.pool; ++i) {
+            sm.sound_pool.push( newAudio( lane_config.filename ) )
+          }
+          // this is how we'll trigger a sound from the pool
+          sm.trigger = () => {
+            // play _next_ sound, cycling in roundrobin order (allows last one to finish playing)
+            sm.sound_pool[sm.pool_counter].play()
+            sm.pool_counter = (sm.pool_counter + 1) % sm.sound_pool.length
+          }
+
+          // initialize the {slots} number of slots for each lane
+          let seq_lane_slots = []
           for (let slot = 0; slot < slots; ++slot) {
             // each slot has slotdata
             let slotdata = {
               element: document.getElementById( 'a' + lane + slot ),
               state: false,
-              sound_pool: lane_sounds[lane]
+              soundmanager: sm
             }
             // setup the cell's onclick to call onSlotClick
             slotdata.element.onclick = () => onSlotClick( slotdata )
-            seq_lane.push( slotdata )
+            seq_lane_slots.push( slotdata )
           }
-          seq.push( seq_lane )
+
+          // add the lane
+          seq.push( {soundmanager: sm, slots: seq_lane_slots} )
         }
+
+        // start the clock
+        restartTimer()
       }
 
       // called when it's time to trigger a cell
       function trigger( slotdata ) {
-        slotdata.sound_pool && slotdata.sound_pool.trigger()
+        slotdata.soundmanager.trigger()
       }
 
       // step the sequencer one step
       function step() {
         // reset all cells to show their 'set' state (or 'off' if not set)
         for (let seq_lane of seq) {
-          for (let slot of seq_lane) {
+          for (let slot of seq_lane.slots) {
             slot.element.className = slot.state ? 'set' : 'off'
           }
         }
 
         // show where the song position is by turning 'on' the cell
         for (let lane in seq) {
-          seq[lane][counter].element.className = 'on'
+          seq[lane].slots[counter].element.className = 'on'
 
           // if the cell is 'set', then trigger it!
-          if (playing && seq[lane][counter].state) {
-            trigger( seq[lane][counter] );
+          if (playing && seq[lane].slots[counter].state) {
+            trigger( seq[lane].slots[counter] );
           }
         }
 
@@ -214,7 +245,6 @@
 
       // go!
       init()
-      restartTimer()
     </script>
   </body>
 </html>
