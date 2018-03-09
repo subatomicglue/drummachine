@@ -1,0 +1,142 @@
+<html>
+   <head>
+      <!--
+         SIMPLE DRUMMACHINE - EXAMPLE
+         THINGS TO TRY:
+         - try generating the divs with javascript based on {slots},{lanes} forloop
+         - try adding a 'load sound' button for each track so you can add your own sounds
+         - try saving the session to localStorage so track data persists next refresh
+         - try adding buttons to inc/dec number of slots or lanes
+         - try adding buttons to inc/dec the tempo...
+      -->
+   </head>
+   <body>
+      <!-- create the tracks.   we could do better and create these with javascript.  but this was easy -->
+      <div id="lane0" class="lane"></div>
+         <div id="a00"></div>
+         <div id="a01"></div>
+         <div id="a02"></div>
+         <div id="a03"></div>
+         <div id="a04"></div>
+         <div id="a05"></div>
+         <div id="a06"></div>
+         <div id="a07"></div>
+      </div>
+      <div id="lane1" class="lane"></div>
+         <div id="a10"></div>
+         <div id="a11"></div>
+         <div id="a12"></div>
+         <div id="a13"></div>
+         <div id="a14"></div>
+         <div id="a15"></div>
+         <div id="a16"></div>
+         <div id="a17"></div>
+      </div>
+      <div id="lane2" class="lane"></div>
+         <div id="a20"></div>
+         <div id="a21"></div>
+         <div id="a22"></div>
+         <div id="a23"></div>
+         <div id="a24"></div>
+         <div id="a25"></div>
+         <div id="a26"></div>
+         <div id="a27"></div>
+      </div>
+      <style>
+         .on {
+            background-color: coral;
+            width: 10px;
+            height: 10px;
+            display:inline-block
+         }
+         .set {
+            background-color: red;
+            width: 10px;
+            height: 10px;
+            display:inline-block
+         }
+         .off {
+            background-color: black;
+            width: 10px;
+            height: 10px;
+            display:inline-block
+         }
+         .lane {
+            background-color: blue;
+         }
+      </style>
+      <script>
+         let seq = []      // array of arrays  (i.e. array of seq_lanes, which are arrays of slotdata)
+         let counter = 0   // the current song position (this increments by 1, every {speed} milliseconds)
+         let lanes = 3     // how many lanes
+         let slots = 8     // how many cells in each lane
+         let lane_sounds = [
+            new Audio("env9091.wav"),
+            new Audio("MaxV - Roland808 - SD1010 11.WAV"),
+            new Audio("MaxV - Roland808 - CH 39.WAV"),
+         ]
+         let speed = 200   // how fast to increment the song position {counter} by 1 (in milliseconds)
+
+         // called when clicking on any slot
+         function onSlotClick( slotdata ) {
+            // just toggle the state from 'off' (false) to 'set' (true)
+            slotdata.state = !slotdata.state
+         }
+
+         // initialize the sequencer track
+         function init() {
+            // set up the lanes, and initialize the data for each slot
+            for (let lane = 0; lane < lanes; ++lane) {
+               // each lane has slots
+               let seq_lane = []
+               for (let slot = 0; slot < slots; ++slot) {
+                  // each slot has slotdata
+                  let slotdata = {
+                     element: document.getElementById( 'a' + lane + slot ),
+                     state: false,
+                     sound: lane_sounds[lane]
+                  }
+                  // setup the cell's onclick to call onSlotClick
+                  slotdata.element.onclick = () => onSlotClick( slotdata )
+                  seq_lane.push( slotdata )
+               }
+               seq.push( seq_lane )
+            }
+         }
+
+         // called when it's time to trigger a cell
+         function trigger( slotdata ) {
+            slotdata.sound.pause();
+            slotdata.sound.currentTime = 0;
+            slotdata.sound.play()
+         }
+
+         // step the sequencer one step
+         function step() {
+            // reset all cells to show their 'set' state (or 'off' if not set)
+            for (let seq_lane of seq) {
+               for (let slot of seq_lane) {
+                  slot.element.className = slot.state ? 'set' : 'off'
+               }
+            }
+
+            // show where the song position is by turning 'on' the cell
+            for (let lane in seq) {
+               seq[lane][counter].element.className = 'on'
+
+               // if the cell is 'set', then trigger it!
+               if (seq[lane][counter].state) {
+                  trigger( seq[lane][counter] );
+               }
+            }
+
+            // advance the song pointer (use mod so it wraps around)
+            counter = (counter + 1) % slots
+         }
+
+         // go!
+         init()
+         setInterval( () => step(), speed )
+      </script>
+   </body>
+</html>
