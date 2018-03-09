@@ -24,6 +24,9 @@ cd drummachine
 ## Run it locally:
 ```
 open index.html (in your favorite web browser)
+
+Super basic learning example:
+  open index_simple.html (in your favorite web browser)
 ```
 
 
