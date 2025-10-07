@@ -31,6 +31,8 @@ Super basic learning example:
 
 ## HelloWorld Demos
 To help you navigate, here's a complete list of my hello world demos
+
+### Simple Demos
 - 2D SVG - [helloworld_html_js_svg](https://github.com/subatomicglue/helloworld_html_js_svg)
 - 2D Canvas - [helloworld_html_js_canvas](https://github.com/subatomicglue/helloworld_html_js_canvas)
 - 3D Canvas - [threejs-helloworld-cube](https://github.com/subatomicglue/threejs-helloworld-cube)
