@@ -1,4 +1,4 @@
-#!/usr/local/opt/python/libexec/bin/python
+#!/usr/bin/env python2
 
 import SimpleHTTPServer, SocketServer
 import urlparse, os
@@ -47,6 +47,7 @@ class MyHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         # send index.html, but don't redirect
         self.send_response(200)
         self.send_header('Content-Type', 'text/html')
+        self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
         with open(INDEXFILE, 'r') as fin:
           self.copyfile(fin, self.wfile)
