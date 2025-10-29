@@ -41,4 +41,5 @@ To help you navigate, here's a complete list of my hello world demos
 - 2D Canvas with L-systems fractal tree - [fractaltree](https://github.com/subatomicglue/fractaltree)
 - 2D Canvas with sprites and map tiles - [sprite_demo_js](https://github.com/subatomicglue/sprite_demo_js)
 - Audio Demo with drummachine - [drummachine](https://github.com/subatomicglue/drummachine)
+- Audio Demos:  MIDI music, Audio player - [drummachine](https://github.com/subatomicglue/kiosk)
 
